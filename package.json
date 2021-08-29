@@ -11,6 +11,9 @@
         "dev": "concurrently \"npm run server\" \"npm run client\"",
         "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install npm && run build"
     },
+    "engines": {
+        "node": "14.15.4"
+    },
     "author": "Dave Howson",
     "license": "MIT",
     "dependencies": {
