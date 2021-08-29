@@ -6,11 +6,17 @@ const cors = require("cors");
 
 const users = require("./routes/api/users");
 const messages = require("./routes/api/messages");
+const path = require("path");
 
 const app = express();
 
 // Port that the webserver listens to
 const port = process.env.PORT || 5000;
+
+app.use(express.static(path.join(__dirname, "../build")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../build"));
+});
 
 const server = app.listen(port, () =>
   console.log(`Server running on port ${port}`)
