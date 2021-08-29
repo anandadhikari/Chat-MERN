@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const passport = require("passport");
 const cors = require("cors");
+const morgan = require("morgan");
 
 const users = require("./routes/api/users");
 const messages = require("./routes/api/messages");
@@ -13,10 +14,15 @@ const app = express();
 // Port that the webserver listens to
 const port = process.env.PORT || 5000;
 
-app.use(express.static(path.join(__dirname, "../build")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../build"));
-});
+// app.use(express.static(path.join(__dirname, "client", "build")));
+
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+} else if (process.env.NODE_ENV === "production") {
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+  });
+}
 
 const server = app.listen(port, () =>
   console.log(`Server running on port ${port}`)
