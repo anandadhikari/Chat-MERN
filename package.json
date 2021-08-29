@@ -4,18 +4,19 @@
     "description": "MERN Stack Based Chat Application",
     "main": "server.js",
     "scripts": {
-        "client-install": "npm install --prefix client",
-        "start": "node server.js",
-        "server": "nodemon server.js",
-        "client": "npm start --prefix client",
-        "dev": "concurrently \"npm run server\" \"npm run client\"",
-        "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install npm && run build"
+        "build": "cd client && npm run build",
+    "heroku-postbuild": "cd client && npm install --only=dev && npm install && npm run build",
+    "install": "cd client && npm install",
+    "start": "node server.js",
+    "server": "nodemon server.js",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \" npm run client\""
     },
     "engines": {
         "node": "14.15.4"
     },
-    "author": "Dave Howson",
-    "license": "MIT",
+    "author": "Anand Adhikari",
+    "license": "IND",
     "dependencies": {
         "bcryptjs": "^2.4.3",
         "body-parser": "^1.19.0",
