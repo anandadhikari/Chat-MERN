@@ -50,7 +50,7 @@ const Users = (props) => {
 
   return (
     <List className={classes.list}>
-      {users && (
+      {users && Array.isArray(users) && (
         <React.Fragment>
           {users.map((u) => (
             <ListItem
