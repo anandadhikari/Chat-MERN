@@ -107,6 +107,7 @@ const ChatBox = (props) => {
 
   useEffect(() => {
     const socket = socketIOClient(process.env.REACT_APP_API_URL);
+    console.log(socket,"messages")
     socket.on("messages", (data) => setLastMessage(data));
   }, []);
 
@@ -114,6 +115,8 @@ const ChatBox = (props) => {
     if (props.scope === "Global Chat") {
       getGlobalMessages().then((res) => {
         setMessages(res);
+        console.log(res,"messages")
+
       });
     } else if (props.scope !== null && props.conversationId !== null) {
       getConversationMessages(props.user._id).then((res) => setMessages(res));
@@ -141,7 +144,6 @@ const ChatBox = (props) => {
     }
   };
 
-  console.log(messages,"messages")
 
   return (
     <Grid container className={classes.root}>

@@ -7,6 +7,8 @@ const useHandleResponse = () => {
   const handleResponse = (response) => {
     return response.text().then((text) => {
       const data = text && JSON.parse(text);
+      console.log(data, "response");
+
       if (!response.ok) {
         if ([401, 403].indexOf(response.status) !== -1) {
           authenticationService.logout();
@@ -18,7 +20,6 @@ const useHandleResponse = () => {
         const error = (data && data.message) || response.statusText;
         return Promise.reject(error);
       }
-      console.log(data, "response");
 
       return data;
     });
