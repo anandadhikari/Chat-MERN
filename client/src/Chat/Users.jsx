@@ -44,11 +44,10 @@ const Users = (props) => {
   useEffect(() => {
     const socket = socketIOClient(process.env.REACT_APP_API_URL);
     socket.on("users", (data) => {
-      console.log(data,"users");
       setNewUser(data);
     });
   }, []);
-
+  console.log(newUser,"users");
   return (
     <List className={classes.list}>
       {users && Array.isArray(users) && (
