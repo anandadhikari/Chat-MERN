@@ -12,8 +12,6 @@ export function useGetGlobalMessages() {
   };
 
   const getGlobalMessages = () => {
-    console.log(process.env.REACT_APP_API_URL);
-    console.log(requestOptions);
     return fetch(
       `${process.env.REACT_APP_API_URL}/api/messages/global`,
       requestOptions
