@@ -8,7 +8,7 @@ const morgan = require("morgan");
 const users = require("./routes/api/users");
 const messages = require("./routes/api/messages");
 const path = require("path");
-
+require("dotenv").config();
 const app = express();
 
 // Port that the webserver listens to
