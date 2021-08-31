@@ -11,13 +11,6 @@ const path = require("path");
 
 const app = express();
 
-var corsOptions = {
-  origin: "http://localhost:8080",
-  optionsSuccessStatus: 200,
-  methods: "GET, PUT",
-};
-
-app.use(cors(corsOptions));
 // Port that the webserver listens to
 const port = process.env.PORT || 8000;
 
@@ -46,7 +39,7 @@ app.use(
 app.use(bodyParser.json());
 
 // CORS middleware
-// app.use(cors());
+app.use(cors());
 
 // Database configuration
 const db = require("./config/keys").mongoURI;
