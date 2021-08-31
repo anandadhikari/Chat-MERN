@@ -12,7 +12,7 @@ require("dotenv").config();
 const app = express();
 
 // Port that the webserver listens to
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 5000;
 
 app.use(express.static(path.join(__dirname, "client", "build")));
 
