@@ -39,7 +39,7 @@ app.use(
 app.use(bodyParser.json());
 
 // CORS middleware
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000/' }));
 
 // Database configuration
 const db = require("./config/keys").mongoURI;

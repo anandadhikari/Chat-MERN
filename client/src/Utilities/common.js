@@ -1,4 +1,4 @@
-export default {
+const initialsUtil = {
   getInitialsFromName: (name) => {
     const letters = String(name)
       .split(" ")
@@ -6,3 +6,5 @@ export default {
     return letters.join("");
   },
 };
+
+export default initialsUtil;
