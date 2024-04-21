@@ -24,12 +24,6 @@ if (process.env.NODE_ENV === "development") {
   });
 }
 
-// const server = app.listen(port, () =>
-//   console.log(`Server running on port ${port}`)
-// );
-
-// const io = require("socket.io").listen(server);
-
 const socketIO = require("socket.io");
 const server = require("http").createServer(app.listen(port, () =>
 console.log(`Server running on port ${port}`)
