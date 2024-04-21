@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const passport = require("passport");
 const cors = require("cors");
 const morgan = require("morgan");
-
+const handlerWithCors = require('./utilities/allowCors'); // Replace with the path to your file
 const users = require("./routes/api/users");
 const messages = require("./routes/api/messages");
 const path = require("path");
@@ -63,6 +63,9 @@ app.use(function (req, res, next) {
   req.io = io;
   next();
 });
+
+app.use(handlerWithCors); // Apply CORS handling to all routes
+
 
 // Routes
 app.use("/api/users", users);
