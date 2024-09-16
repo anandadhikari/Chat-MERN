@@ -10,140 +10,114 @@ const validateRegisterInput = require("../../validation/register");
 const validateLoginInput = require("../../validation/login");
 const User = require("../../models/User");
 
-router.get("/", (req, res) => {
+// GET Route to fetch users
+router.get("/", async (req, res) => {
   try {
+    // Verify token and extract user
     let jwtUser = jwt.verify(verify(req), keys.secretOrKey);
-    let id = mongoose.Types.ObjectId(jwtUser.id);
+    let id = new mongoose.Types.ObjectId(jwtUser.id);
+    console.warn(jwtUser);
+    // Aggregate query
+    const users = await User.aggregate([
+      { $match: { _id: { $not: { $eq: id } } } },
+      { $project: { password: 0, __v: 0, date: 0 } },
+    ]);
 
-    User.aggregate()
-      .match({ _id: { $not: { $eq: id } } })
-      .project({
-        password: 0,
-        __v: 0,
-        date: 0,
-      })
-      .exec((err, users) => {
-        if (err) {
-          console.log(err);
-          res.setHeader("Content-Type", "application/json");
-          res.end(JSON.stringify({ message: "Failure" }));
-          res.sendStatus(500);
-        } else {
-          res.send(users);
-        }
-      });
+    res.json(users);
   } catch (err) {
-    console.log(err);
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ message: "Unauthorized" }));
-    res.sendStatus(401);
+    console.error(err);
+    res.status(500).json({ message: "Unauthorized" });
   }
 });
 
-router.post("/register", (req, res) => {
+// POST Route to register a new user
+router.post("/register", async (req, res) => {
   // Form validation
+  console.log(req.body);
   const { errors, isValid } = validateRegisterInput(req.body);
+
   // Check validation
   if (!isValid) {
     return res.status(400).json(errors);
   }
-  User.findOne({ username: req.body.username }).then((user) => {
-    if (user) {
+
+  try {
+    // Check if user exists
+    const existingUser = await User.findOne({ username: req.body.username });
+    if (existingUser) {
       return res.status(400).json({ message: "Username already exists" });
-    } else {
-      const newUser = new User({
-        name: req.body.name,
-        username: req.body.username,
-        password: req.body.password,
-      });
-      // Hash password before saving in database
-      bcrypt.genSalt(10, (err, salt) => {
-        bcrypt.hash(newUser.password, salt, (err, hash) => {
-          if (err) throw err;
-          newUser.password = hash;
-          newUser
-            .save()
-            .then((user) => {
-              const payload = {
-                id: user.id,
-                name: user.name,
-              };
-              // Sign token
-              jwt.sign(
-                payload,
-                keys.secretOrKey,
-                {
-                  expiresIn: 31556926, // 1 year in seconds
-                },
-                (err, token) => {
-                  if (err) {
-                    console.log(err);
-                  } else {
-                    req.io.sockets.emit("users", user.username);
-                    res.json({
-                      success: true,
-                      token: "Bearer " + token,
-                      name: user.name,
-                    });
-                  }
-                }
-              );
-            })
-            .catch((err) => console.log(err));
-        });
-      });
     }
-  });
+
+    // Create new user
+    const newUser = new User({
+      name: req.body.name,
+      username: req.body.username,
+      password: req.body.password,
+    });
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    newUser.password = await bcrypt.hash(newUser.password, salt);
+
+    // Save user
+    const user = await newUser.save();
+
+    // Create JWT payload
+    const payload = { id: user.id, name: user.name };
+
+    // Sign token
+    const token = jwt.sign(payload, keys.secretOrKey, { expiresIn: 31556926 }); // 1 year
+
+    req.io.sockets.emit("users", user.username);
+    res.json({ success: true, token: "Bearer " + token, name: user.name });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error registering user" });
+  }
 });
 
-router.post("/login", (req, res) => {
+// POST Route to login
+router.post("/login", async (req, res) => {
   // Form validation
   const { errors, isValid } = validateLoginInput(req.body);
+
   // Check validation
   if (!isValid) {
     return res.status(400).json(errors);
   }
-  const username = req.body.username;
-  const password = req.body.password;
-  // Find user by username
-  User.findOne({ username }).then((user) => {
-    // Check if user exists
+
+  const { username, password } = req.body;
+
+  try {
+    // Find user by username
+    const user = await User.findOne({ username });
     if (!user) {
       return res.status(404).json({ usernamenotfound: "Username not found" });
     }
+
     // Check password
-    bcrypt.compare(password, user.password).then((isMatch) => {
-      if (isMatch) {
-        // User matched
-        // Create JWT Payload
-        const payload = {
-          id: user.id,
-          name: user.name,
-        };
-        // Sign token
-        jwt.sign(
-          payload,
-          keys.secretOrKey,
-          {
-            expiresIn: 86400, // 31556926 1 year in seconds
-          },
-          (err, token) => {
-            res.json({
-              success: true,
-              token: "Bearer " + token,
-              name: user.name,
-              username: user.username,
-              userId: user._id,
-            });
-          }
-        );
-      } else {
-        return res
-          .status(400)
-          .json({ passwordincorrect: "Password incorrect" });
-      }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ passwordincorrect: "Password incorrect" });
+    }
+
+    // Create JWT payload
+    const payload = { id: user.id, name: user.name };
+
+    // Sign token
+    const token = jwt.sign(payload, keys.secretOrKey, { expiresIn: 86400 }); // 1 day
+
+    res.json({
+      success: true,
+      token: "Bearer " + token,
+      name: user.name,
+      username: user.username,
+      userId: user._id,
     });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error logging in" });
+  }
 });
 
 module.exports = router;

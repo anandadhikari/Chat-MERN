@@ -4,69 +4,65 @@ const bodyParser = require("body-parser");
 const passport = require("passport");
 const cors = require("cors");
 const morgan = require("morgan");
-const handlerWithCors = require('./utilities/allowCors'); // Replace with the path to your file
+const handlerWithCors = require("./utilities/allowCors"); // Replace with the path to your file
 const users = require("./routes/api/users");
 const messages = require("./routes/api/messages");
 const path = require("path");
 require("dotenv").config();
+
 const app = express();
-
-// Port that the webserver listens to
-const port = process.env.PORT || 5000;
-
-app.use(express.static(path.join(__dirname, "client", "build")));
-
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-} else if (process.env.NODE_ENV === "production") {
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
-  });
-}
-
-const socketIO = require("socket.io");
-const server = require("http").createServer(app.listen(port, () =>
-console.log(`Server running on port ${port}`)
-)); // Assuming you have an HTTP server already
-
-const io = socketIO(server);
-// Body Parser middleware to parse request bodies
-app.use(
-  bodyParser.urlencoded({
-    extended: false,
-  })
-);
-app.use(bodyParser.json());
-
-// CORS middleware
-app.use(cors());
-
-// Database configuration
+const PORT = process.env.PORT || 5000;
 const db = require("./config/keys").mongoURI;
 
-mongoose
-  .connect(db, {
-    useNewUrlParser: true,
-    useFindAndModify: false,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("MongoDB Successfully Connected"))
-  .catch((err) => console.log(err));
+// Middleware setup
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(cors());
+app.use(express.static(path.join(__dirname, "client", "build")));
+
+// if (process.env.NODE_ENV === "development") {
+//   app.use(morgan("dev"));
+// } else if (process.env.NODE_ENV === "production") {
+//   app.get("*", (req, res) => {
+//     res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+//   });
+// }
 
 // Passport middleware
 app.use(passport.initialize());
-// Passport config
 require("./config/passport")(passport);
 
-// Assign socket object to every request
-app.use(function (req, res, next) {
+// Create HTTP server
+const http = require("http");
+const socketIO = require("socket.io");
+
+const server = http.createServer(app);
+const io = socketIO(server);
+// Efficiently inject Socket.IO instance into routes
+app.use((req, res, next) => {
   req.io = io;
   next();
 });
 
-app.use(handlerWithCors); // Apply CORS handling to all routes
-
-
 // Routes
 app.use("/api/users", users);
 app.use("/api/messages", messages);
+
+// Apply CORS handling to all routes
+app.use(handlerWithCors);
+
+// Connect to MongoDB
+const connectToMongoDB = async () => {
+  try {
+    await mongoose.connect(db);
+    console.log("Connected to MongoDB");
+  } catch (error) {
+    console.error("Error connecting to MongoDB:", error);
+  }
+};
+
+// Start server
+server.listen(PORT, () => {
+  connectToMongoDB();
+  console.log(`Backend server is running on port ${PORT}`);
+});
