@@ -1,9 +1,7 @@
 const allowCors = (fn) => async (req, res) => {
-  const origin = req.headers.origin;
-
   res.setHeader("Access-Control-Allow-Credentials", true);
   // Dynamically set the origin to the request's origin
-  res.setHeader("Access-Control-Allow-Origin", origin || "*");
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET,OPTIONS,PATCH,DELETE,POST,PUT"
