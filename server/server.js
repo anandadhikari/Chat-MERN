@@ -17,7 +17,20 @@ const db = require("./config/keys").mongoURI;
 // Middleware setup
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+    ],
+    credentials: true,
+  })
+);
 app.use(express.static(path.join(__dirname, "client", "build")));
 
 if (process.env.NODE_ENV === "development") {
