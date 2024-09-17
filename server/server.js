@@ -20,13 +20,13 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, "client", "build")));
 
-// if (process.env.NODE_ENV === "development") {
-//   app.use(morgan("dev"));
-// } else if (process.env.NODE_ENV === "production") {
-//   app.get("*", (req, res) => {
-//     res.sendFile(path.join(__dirname, "client", "build", "index.html"));
-//   });
-// }
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+} else if (process.env.NODE_ENV === "production") {
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+  });
+}
 
 // Passport middleware
 app.use(passport.initialize());
@@ -44,12 +44,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Apply CORS handling to all routes
+app.use(handlerWithCors);
+
 // Routes
 app.use("/api/users", users);
 app.use("/api/messages", messages);
-
-// Apply CORS handling to all routes
-app.use(handlerWithCors);
 
 // Connect to MongoDB
 const connectToMongoDB = async () => {
