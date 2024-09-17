@@ -50,7 +50,14 @@ const http = require("http");
 const socketIO = require("socket.io");
 
 const server = http.createServer(app);
-const io = socketIO(server);
+const io = socketIO(server, {
+  cors: {
+    origin: "*", // Allow all origins
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  },
+});
 // Efficiently inject Socket.IO instance into routes
 app.use((req, res, next) => {
   req.io = io;
